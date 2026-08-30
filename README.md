@@ -1,17 +1,17 @@
 # Invoice Atlas
 
-Ülke adaptörleriyle genişleyebilen, XML/JSON/metin tabanlı e-fatura validasyon ve görsel önizleme portalı.
+A country-adaptable portal for XML, JSON, and text-based e-invoice validation and visual previews.
 
-## Özellikler
+## Features
 
-- Slovakya varsayılan profil: EN 16931 / Peppol BIS Billing 3.0 bağlamında temel alan, taraf ve tutar kontrolleri
-- Aynı kanonik veri modeli üzerinden SK, CZ, DE, FR, IT, ES, NL, GB ve US profilleri
-- XML (UBL benzeri), JSON ve etiketli düz metin parse etme
-- Sağ panelde insan-okunabilir fatura görünümü; yazdırma ve tam ekran
-- Opsiyonel OpenAI bağlantılı AI Invoice Copilot; anahtar yoksa yerel soru-cevap fallback'i
-- Vercel Python runtime ile deploy edilebilir
+- Slovakia as the default profile, with core field, party, and amount checks based on EN 16931 / Peppol BIS Billing 3.0
+- SK, CZ, DE, FR, IT, ES, NL, GB, US, and additional country profiles using the same canonical data model
+- Parsing for XML (UBL-like), JSON, and labeled plain text
+- Human-readable invoice preview with print and fullscreen support
+- Optional OpenAI-powered AI Invoice Copilot with a local question-and-answer fallback when no key is configured
+- Deployable with the Vercel Python runtime
 
-## Lokal çalıştırma
+## Local setup
 
 ```powershell
 python -m venv .venv
@@ -20,13 +20,13 @@ pip install -r requirements.txt
 python api/index.py
 ```
 
-Sonra `http://127.0.0.1:8000` adresini açın. Lokal server FastAPI API'sini çalıştırır; frontend Vercel route'larıyla sunulacağı için lokal geliştirmede hızlı test için `public/index.html` dosyasını Live Server ile de açabilirsiniz.
+Open `http://127.0.0.1:8000` in your browser. The local server runs the Starlette API and serves the frontend. For quick frontend-only development, you can also open `public/index.html` with Live Server.
 
 ## AI Copilot
 
-Copilot panelindeki “Kendi OpenAI API anahtarın” alanına müşteri kendi anahtarını girebilir. Anahtar `X-OpenAI-API-Key` header'ı ile yalnızca o istekte kullanılır; uygulama tarafından kaydedilmez, loglanmaz ve Git/Vercel'e yazılmaz. Anahtar girilmezse temel alan soruları yerel fallback ile yanıtlanır. Sunucu sahibi anahtarıyla çalıştırmak isterseniz `.env` içine `OPENAI_API_KEY` ve isteğe bağlı `OPENAI_MODEL` ekleyebilirsiniz.
+Users can enter their own key in the “Your OpenAI API key” field. The key is sent in the `X-OpenAI-API-Key` header for that request only; it is not stored, logged, or written to Git/Vercel. Without a key, basic field questions use the local fallback. To use a server-owned key, add `OPENAI_API_KEY` and optionally `OPENAI_MODEL` to `.env`.
 
-## Git ve Vercel
+## Git and Vercel
 
 ```powershell
 git init
@@ -37,6 +37,6 @@ git remote add origin <GITHUB_REPO_URL>
 git push -u origin main
 ```
 
-Vercel'de repo'yu import edin. Framework preset için `Other` seçilebilir; `vercel.json` Python API ve statik frontend route'larını tanımlar. Müşteri anahtarı kullanacağı için Vercel'e `OPENAI_API_KEY` eklemek zorunlu değildir. Kullanıcıların yalnızca güvendikleri deployment'a anahtar girmesi gerekir; OpenAI API anahtarı paylaşılmamalıdır.
+Import the repository into Vercel. Select `Other` as the framework preset if needed; `vercel.json` defines the Python API and static frontend routes. Because users can provide their own key, adding `OPENAI_API_KEY` to Vercel is optional. Users should enter keys only on deployments they trust and should never share their OpenAI API key.
 
-> Not: Bu proje resmi vergi otoritesi onayı veya hukuki uyumluluk kararı vermez; validasyon katmanı genişletilebilir bir ürün temelidir.
+> Note: This project does not provide official tax authority approval or a legal compliance decision; the validation layer is an extensible product foundation.

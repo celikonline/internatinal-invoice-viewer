@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f7f8fc" />
-    <meta name="description" content="Ülke bağımsız e-fatura doğrulama ve görselleştirme portalı" />
-    <title>Invoice Atlas — e-Fatura Validasyon</title>
+    <meta name="description" content="Country-agnostic e-invoice validation and visualization portal" />
+    <title>Invoice Atlas — e-Invoice Validation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -15,69 +15,77 @@
   </head>
   <body>
     <div class="app-shell">
+      <div class="powered-by" aria-label="İletişim bilgileri">
+        <span>Powered by <strong>Özgür Çelik</strong></span>
+        <div class="powered-contact">
+          <a href="mailto:celikonline@gmail.com">celikonline@gmail.com</a>
+          <a href="tel:+905339672528">+90 533 967 25 28</a>
+          <a href="https://www.linkedin.com/in/ozgurcelik26/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+        </div>
+      </div>
       <header class="topbar">
-        <a class="brand" href="#top" aria-label="Invoice Atlas ana sayfa">
+        <a class="brand" href="#top" aria-label="Invoice Atlas home page">
           <span class="brand-mark"><i></i><i></i><i></i></span>
           <span>invoice<span class="brand-accent">atlas</span></span>
         </a>
         <div class="topbar-right">
-          <span class="secure-chip"><span class="pulse-dot"></span> Yerel önizleme</span>
-          <a class="quiet-link" href="https://www.financnasprava.sk/sk/titulna-stranka" target="_blank" rel="noreferrer">Slovakya referansı <span>↗</span></a>
+          <span class="secure-chip"><span class="pulse-dot"></span> Local preview</span>
+          <a class="quiet-link" href="https://www.financnasprava.sk/sk/titulna-stranka" target="_blank" rel="noreferrer">Slovakia reference <span>↗</span></a>
         </div>
       </header>
 
       <main id="top">
         <section class="hero">
-          <div class="eyebrow"><span class="eyebrow-line"></span> E-FATURA OPERASYON MERKEZİ <span class="eyebrow-line"></span></div>
-          <div class="map-picker" aria-label="Haritadan ülke seçin">
-            <div class="map-picker-head"><div><span class="section-kicker">COUNTRY SELECTOR</span><h2>Haritadan ülkenizi seçin</h2></div><span class="map-current" id="mapCurrent">SK · Slovensko</span></div>
-            <svg class="country-map" viewBox="0 0 760 340" role="img" aria-label="Ülke seçim haritası">
+          <div class="eyebrow"><span class="eyebrow-line"></span> E-INVOICE OPERATIONS CENTER <span class="eyebrow-line"></span></div>
+          <div class="map-picker" aria-label="Choose a country from the map">
+            <div class="map-picker-head"><div><span class="section-kicker">COUNTRY SELECTOR</span><h2>Choose your country from the map</h2></div><span class="map-current" id="mapCurrent">SK · Slovakia</span></div>
+            <svg class="country-map" viewBox="0 0 760 340" role="img" aria-label="Country selection map">
               <path class="map-backdrop" d="M102 111l39-38 62 11 37-35 73 14 56-16 65 22 69-26 74 32 66-9 78 44-36 72 20 51-61 39-57-6-71 30-91-21-57 15-91-36-62-57z" />
-              <g class="map-country" data-country="GB" role="button" tabindex="0" aria-label="Birleşik Krallık"><path d="M134 105l-13-21 7-34 18-13 14 23-5 25 13 22-15 26z" /><text x="130" y="133">GB</text></g>
-              <g class="map-country" data-country="ES" role="button" tabindex="0" aria-label="İspanya"><path d="M153 220l30-31 76 5 28 31-35 34-71-6z" /><text x="201" y="241">ES</text></g>
-              <g class="map-country" data-country="FR" role="button" tabindex="0" aria-label="Fransa"><path d="M228 151l42-22 41 25-9 56-29 25-48-19-21-33z" /><text x="253" y="180">FR</text></g>
-              <g class="map-country" data-country="DE" role="button" tabindex="0" aria-label="Almanya"><path d="M318 100l36-12 35 28-11 61-30 22-31-28 8-30-17-19z" /><text x="331" y="137">DE</text></g>
-              <g class="map-country" data-country="NL" role="button" tabindex="0" aria-label="Hollanda"><path d="M308 88l24-11 18 14-4 26-23 5-18-14z" /><text x="312" y="94">NL</text></g>
-              <g class="map-country" data-country="CZ" role="button" tabindex="0" aria-label="Çekya"><path d="M359 143l42-13 30 17-18 29-46 4-18-20z" /><text x="374" y="158">CZ</text></g>
-              <g class="map-country active" data-country="SK" role="button" tabindex="0" aria-label="Slovakya"><path d="M402 157l46-9 35 18-25 24-43 1-21-17z" /><text x="425" y="174">SK</text></g>
-              <g class="map-country" data-country="IT" role="button" tabindex="0" aria-label="İtalya"><path d="M343 200l35 5 26 30-12 29-17-15-4-26-34-8z" /><text x="354" y="223">IT</text></g>
-              <g class="map-country map-country-us" data-country="US" role="button" tabindex="0" aria-label="Amerika Birleşik Devletleri"><rect x="548" y="238" width="142" height="62" rx="14" /><text x="602" y="275">US</text></g>
-              <g class="map-country" data-country="TR" role="button" tabindex="0" aria-label="Türkiye"><circle cx="566" cy="168" r="15" /><text x="566" y="172">TR</text></g>
-              <g class="map-country" data-country="EG" role="button" tabindex="0" aria-label="Mısır"><circle cx="588" cy="219" r="15" /><text x="588" y="223">EG</text></g>
-              <g class="map-country" data-country="SA" role="button" tabindex="0" aria-label="Suudi Arabistan"><circle cx="645" cy="222" r="15" /><text x="645" y="226">SA</text></g>
-              <g class="map-country" data-country="IE" role="button" tabindex="0" aria-label="İrlanda"><circle cx="87" cy="132" r="15" /><text x="87" y="136">IE</text></g>
-              <g class="map-country" data-country="PT" role="button" tabindex="0" aria-label="Portekiz"><circle cx="133" cy="267" r="15" /><text x="133" y="271">PT</text></g>
-              <g class="map-country" data-country="BE" role="button" tabindex="0" aria-label="Belçika"><circle cx="279" cy="111" r="15" /><text x="279" y="115">BE</text></g>
-              <g class="map-country" data-country="LU" role="button" tabindex="0" aria-label="Lüksemburg"><circle cx="278" cy="139" r="15" /><text x="278" y="143">LU</text></g>
-              <g class="map-country" data-country="CH" role="button" tabindex="0" aria-label="İsviçre"><circle cx="286" cy="211" r="15" /><text x="286" y="215">CH</text></g>
-              <g class="map-country" data-country="AT" role="button" tabindex="0" aria-label="Avusturya"><circle cx="390" cy="191" r="15" /><text x="390" y="195">AT</text></g>
-              <g class="map-country" data-country="SI" role="button" tabindex="0" aria-label="Slovenya"><circle cx="385" cy="220" r="15" /><text x="385" y="224">SI</text></g>
-              <g class="map-country" data-country="HR" role="button" tabindex="0" aria-label="Hırvatistan"><circle cx="421" cy="226" r="15" /><text x="421" y="230">HR</text></g>
-              <g class="map-country" data-country="HU" role="button" tabindex="0" aria-label="Macaristan"><circle cx="453" cy="204" r="15" /><text x="453" y="208">HU</text></g>
-              <g class="map-country" data-country="RO" role="button" tabindex="0" aria-label="Romanya"><circle cx="496" cy="216" r="15" /><text x="496" y="220">RO</text></g>
-              <g class="map-country" data-country="BG" role="button" tabindex="0" aria-label="Bulgaristan"><circle cx="505" cy="247" r="15" /><text x="505" y="251">BG</text></g>
-              <g class="map-country" data-country="GR" role="button" tabindex="0" aria-label="Yunanistan"><circle cx="470" cy="282" r="15" /><text x="470" y="286">GR</text></g>
-              <g class="map-country" data-country="CY" role="button" tabindex="0" aria-label="Kıbrıs"><circle cx="528" cy="294" r="15" /><text x="528" y="298">CY</text></g>
-              <g class="map-country" data-country="PL" role="button" tabindex="0" aria-label="Polonya"><circle cx="450" cy="128" r="15" /><text x="450" y="132">PL</text></g>
-              <g class="map-country" data-country="DK" role="button" tabindex="0" aria-label="Danimarka"><circle cx="389" cy="75" r="15" /><text x="389" y="79">DK</text></g>
-              <g class="map-country" data-country="SE" role="button" tabindex="0" aria-label="İsveç"><circle cx="442" cy="53" r="15" /><text x="442" y="57">SE</text></g>
-              <g class="map-country" data-country="NO" role="button" tabindex="0" aria-label="Norveç"><circle cx="380" cy="28" r="15" /><text x="380" y="32">NO</text></g>
-              <g class="map-country" data-country="IS" role="button" tabindex="0" aria-label="İzlanda"><circle cx="61" cy="51" r="15" /><text x="61" y="55">IS</text></g>
-              <g class="map-country" data-country="LI" role="button" tabindex="0" aria-label="Lihtenştayn"><circle cx="316" cy="214" r="15" /><text x="316" y="218">LI</text></g>
-              <g class="map-country" data-country="FI" role="button" tabindex="0" aria-label="Finlandiya"><circle cx="505" cy="32" r="15" /><text x="505" y="36">FI</text></g>
-              <g class="map-country" data-country="EE" role="button" tabindex="0" aria-label="Estonya"><circle cx="532" cy="68" r="15" /><text x="532" y="72">EE</text></g>
-              <g class="map-country" data-country="LV" role="button" tabindex="0" aria-label="Letonya"><circle cx="533" cy="99" r="15" /><text x="533" y="103">LV</text></g>
-              <g class="map-country" data-country="LT" role="button" tabindex="0" aria-label="Litvanya"><circle cx="524" cy="130" r="15" /><text x="524" y="134">LT</text></g>
+              <g class="map-country" data-country="GB" role="button" tabindex="0" aria-label="United Kingdom"><path d="M134 105l-13-21 7-34 18-13 14 23-5 25 13 22-15 26z" /><text x="130" y="133">GB</text></g>
+              <g class="map-country" data-country="ES" role="button" tabindex="0" aria-label="Spain"><path d="M153 220l30-31 76 5 28 31-35 34-71-6z" /><text x="201" y="241">ES</text></g>
+              <g class="map-country" data-country="FR" role="button" tabindex="0" aria-label="France"><path d="M228 151l42-22 41 25-9 56-29 25-48-19-21-33z" /><text x="253" y="180">FR</text></g>
+              <g class="map-country" data-country="DE" role="button" tabindex="0" aria-label="Germany"><path d="M318 100l36-12 35 28-11 61-30 22-31-28 8-30-17-19z" /><text x="331" y="137">DE</text></g>
+              <g class="map-country" data-country="NL" role="button" tabindex="0" aria-label="Netherlands"><path d="M308 88l24-11 18 14-4 26-23 5-18-14z" /><text x="312" y="94">NL</text></g>
+              <g class="map-country" data-country="CZ" role="button" tabindex="0" aria-label="Czechia"><path d="M359 143l42-13 30 17-18 29-46 4-18-20z" /><text x="374" y="158">CZ</text></g>
+              <g class="map-country active" data-country="SK" role="button" tabindex="0" aria-label="Slovakia"><path d="M402 157l46-9 35 18-25 24-43 1-21-17z" /><text x="425" y="174">SK</text></g>
+              <g class="map-country" data-country="IT" role="button" tabindex="0" aria-label="Italy"><path d="M343 200l35 5 26 30-12 29-17-15-4-26-34-8z" /><text x="354" y="223">IT</text></g>
+              <g class="map-country map-country-us" data-country="US" role="button" tabindex="0" aria-label="United States"><rect x="548" y="238" width="142" height="62" rx="14" /><text x="602" y="275">US</text></g>
+              <g class="map-country" data-country="TR" role="button" tabindex="0" aria-label="Turkey"><circle cx="566" cy="168" r="15" /><text x="566" y="172">TR</text></g>
+              <g class="map-country" data-country="EG" role="button" tabindex="0" aria-label="Egypt"><circle cx="588" cy="219" r="15" /><text x="588" y="223">EG</text></g>
+              <g class="map-country" data-country="SA" role="button" tabindex="0" aria-label="Saudi Arabia"><circle cx="645" cy="222" r="15" /><text x="645" y="226">SA</text></g>
+              <g class="map-country" data-country="IE" role="button" tabindex="0" aria-label="Ireland"><circle cx="87" cy="132" r="15" /><text x="87" y="136">IE</text></g>
+              <g class="map-country" data-country="PT" role="button" tabindex="0" aria-label="Portugal"><circle cx="133" cy="267" r="15" /><text x="133" y="271">PT</text></g>
+              <g class="map-country" data-country="BE" role="button" tabindex="0" aria-label="Belgium"><circle cx="279" cy="111" r="15" /><text x="279" y="115">BE</text></g>
+              <g class="map-country" data-country="LU" role="button" tabindex="0" aria-label="Luxembourg"><circle cx="278" cy="139" r="15" /><text x="278" y="143">LU</text></g>
+              <g class="map-country" data-country="CH" role="button" tabindex="0" aria-label="Switzerland"><circle cx="286" cy="211" r="15" /><text x="286" y="215">CH</text></g>
+              <g class="map-country" data-country="AT" role="button" tabindex="0" aria-label="Austria"><circle cx="390" cy="191" r="15" /><text x="390" y="195">AT</text></g>
+              <g class="map-country" data-country="SI" role="button" tabindex="0" aria-label="Slovenia"><circle cx="385" cy="220" r="15" /><text x="385" y="224">SI</text></g>
+              <g class="map-country" data-country="HR" role="button" tabindex="0" aria-label="Croatia"><circle cx="421" cy="226" r="15" /><text x="421" y="230">HR</text></g>
+              <g class="map-country" data-country="HU" role="button" tabindex="0" aria-label="Hungary"><circle cx="453" cy="204" r="15" /><text x="453" y="208">HU</text></g>
+              <g class="map-country" data-country="RO" role="button" tabindex="0" aria-label="Romania"><circle cx="496" cy="216" r="15" /><text x="496" y="220">RO</text></g>
+              <g class="map-country" data-country="BG" role="button" tabindex="0" aria-label="Bulgaria"><circle cx="505" cy="247" r="15" /><text x="505" y="251">BG</text></g>
+              <g class="map-country" data-country="GR" role="button" tabindex="0" aria-label="Greece"><circle cx="470" cy="282" r="15" /><text x="470" y="286">GR</text></g>
+              <g class="map-country" data-country="CY" role="button" tabindex="0" aria-label="Cyprus"><circle cx="528" cy="294" r="15" /><text x="528" y="298">CY</text></g>
+              <g class="map-country" data-country="PL" role="button" tabindex="0" aria-label="Poland"><circle cx="450" cy="128" r="15" /><text x="450" y="132">PL</text></g>
+              <g class="map-country" data-country="DK" role="button" tabindex="0" aria-label="Denmark"><circle cx="389" cy="75" r="15" /><text x="389" y="79">DK</text></g>
+              <g class="map-country" data-country="SE" role="button" tabindex="0" aria-label="Sweden"><circle cx="442" cy="53" r="15" /><text x="442" y="57">SE</text></g>
+              <g class="map-country" data-country="NO" role="button" tabindex="0" aria-label="Norway"><circle cx="380" cy="28" r="15" /><text x="380" y="32">NO</text></g>
+              <g class="map-country" data-country="IS" role="button" tabindex="0" aria-label="Iceland"><circle cx="61" cy="51" r="15" /><text x="61" y="55">IS</text></g>
+              <g class="map-country" data-country="LI" role="button" tabindex="0" aria-label="Liechtenstein"><circle cx="316" cy="214" r="15" /><text x="316" y="218">LI</text></g>
+              <g class="map-country" data-country="FI" role="button" tabindex="0" aria-label="Finland"><circle cx="505" cy="32" r="15" /><text x="505" y="36">FI</text></g>
+              <g class="map-country" data-country="EE" role="button" tabindex="0" aria-label="Estonia"><circle cx="532" cy="68" r="15" /><text x="532" y="72">EE</text></g>
+              <g class="map-country" data-country="LV" role="button" tabindex="0" aria-label="Latvia"><circle cx="533" cy="99" r="15" /><text x="533" y="103">LV</text></g>
+              <g class="map-country" data-country="LT" role="button" tabindex="0" aria-label="Lithuania"><circle cx="524" cy="130" r="15" /><text x="524" y="134">LT</text></g>
               <g class="map-country" data-country="MT" role="button" tabindex="0" aria-label="Malta"><circle cx="416" cy="298" r="15" /><text x="416" y="302">MT</text></g>
               <path class="map-route" d="M461 172c38 14 64 29 93 64" />
             </svg>
-            <div class="map-picker-foot"><span><i class="map-dot"></i><strong id="mapCurrentName">Slovakia</strong> profili aktif</span><span class="map-hint">Ülke koduna tıklayın <b>↗</b></span></div>
+            <div class="map-picker-foot"><span><i class="map-dot"></i><strong id="mapCurrentName">Slovakia</strong> profile active</span><span class="map-hint">Click a country code <b>↗</b></span></div>
           </div>
-          <p class="hero-copy">XML veya JSON e-faturanızı yapıştırın; ülke profilinize göre kontrol edin, okunabilir bir belgeye dönüştürün ve AI Copilot’a doğrudan sorun.</p>
+          <p class="hero-copy">Paste your XML or JSON e-invoice, validate it against a country profile, turn it into a readable document, and ask the AI Copilot directly.</p>
           <div class="hero-metrics">
-            <div><strong>01</strong><span>Yapıştır</span></div><div class="metric-arrow">→</div>
-            <div><strong>02</strong><span>Doğrula</span></div><div class="metric-arrow">→</div>
-            <div><strong>03</strong><span>Keşfet</span></div>
+            <div><strong>01</strong><span>Paste</span></div><div class="metric-arrow">→</div>
+            <div><strong>02</strong><span>Validate</span></div><div class="metric-arrow">→</div>
+            <div><strong>03</strong><span>Explore</span></div>
           </div>
         </section>
 
@@ -85,56 +93,61 @@
           <div class="left-column">
             <div class="panel source-panel" id="sourcePanel">
               <div class="panel-heading">
-                <div><span class="section-kicker">01 / SOURCE</span><h2>Faturayı buraya bırakın</h2></div>
+                <div><span class="section-kicker">01 / SOURCE</span><h2>Drop your invoice here</h2></div>
                 <div class="format-pills"><span>XML</span><span>JSON</span><span>TXT</span></div>
               </div>
               <div class="control-row">
-                <label class="select-label" for="country">Ülke profili</label>
-                <select id="country" aria-label="Ülke profili"></select>
+                <label class="select-label" for="country">Country profile</label>
+                <select id="country" aria-label="Country profile"></select>
                 <span class="profile-standard" id="profileStandard">EN 16931 / Peppol BIS Billing 3.0</span>
               </div>
-              <textarea id="invoiceInput" spellcheck="false" aria-label="Fatura XML JSON veya metni"></textarea>
+              <textarea id="invoiceInput" spellcheck="false" aria-label="Invoice XML, JSON, or text"></textarea>
               <div class="source-footer">
-                <span class="char-count" id="charCount">0 karakter</span>
-                <div class="source-actions"><button class="text-button" id="sampleButton">Örnek yükle</button><button class="text-button muted" id="clearButton">Temizle</button></div>
+                <span class="char-count" id="charCount">0 characters</span>
+                <div class="source-actions"><button class="text-button" id="sampleButton">Load sample</button><button class="text-button muted" id="clearButton">Clear</button></div>
               </div>
-              <button class="primary-button" id="validateButton"><span class="button-icon">✦</span> Faturayı doğrula <span class="button-arrow">↗</span></button>
-              <p class="privacy-note"><span>◌</span> Belgeniz tarayıcıda işlenir; saklanmaz veya paylaşılmaz.</p>
+              <button class="primary-button" id="validateButton"><span class="button-icon">✦</span> Validate invoice <span class="button-arrow">↗</span></button>
+              <p class="privacy-note"><span>◌</span> Your document is processed in the browser; it is not stored or shared.</p>
             </div>
 
             <div class="panel validation-panel" id="validationPanel">
-              <div class="panel-heading compact"><div><span class="section-kicker">02 / VALIDATION</span><h2>Kontrol özeti</h2></div><span class="status-badge neutral" id="statusBadge">Bekliyor</span></div>
-              <div class="validation-empty" id="validationEmpty"><span class="empty-icon">⌁</span><p>Doğrulama sonucu burada görünecek.</p><small>Fatura metnini gönderdiğinizde alan kontrolleri ve tutar mutabakatı çalışır.</small></div>
+              <div class="panel-heading compact"><div><span class="section-kicker">02 / VALIDATION</span><h2>Validation summary</h2></div><span class="status-badge neutral" id="statusBadge">Waiting</span></div>
+              <div class="validation-empty" id="validationEmpty"><span class="empty-icon">⌁</span><p>Your validation result will appear here.</p><small>Field checks and amount reconciliation run when you submit invoice text.</small></div>
               <div class="validation-content hidden" id="validationContent">
-                <div class="score-row"><div class="score-ring" id="scoreRing"><strong id="scoreValue">—</strong><span>score</span></div><div class="score-copy"><strong id="scoreTitle">Analiz tamamlandı</strong><span id="scoreDetail"></span></div></div>
+                <div class="score-row"><div class="score-ring" id="scoreRing"><strong id="scoreValue">—</strong><span>score</span></div><div class="score-copy"><strong id="scoreTitle">Analysis complete</strong><span id="scoreDetail"></span></div></div>
                 <div class="check-list" id="checkList"></div>
               </div>
             </div>
 
             <div class="panel copilot-panel">
-              <div class="panel-heading compact"><div><span class="section-kicker">03 / COPILOT</span><h2>AI Invoice Copilot</h2></div><span class="ai-chip"><span>✦</span> Yardımcı</span></div>
-              <p class="copilot-intro">Faturanız hakkında bir soru sorun. Tutar, taraf, eksik alan veya aktif ülke profiliyle ilgili yardımcı olayım.</p>
+              <div class="panel-heading compact"><div><span class="section-kicker">03 / COPILOT</span><h2>AI Invoice Copilot</h2></div><span class="ai-chip"><span>✦</span> Assistant</span></div>
+              <p class="copilot-intro">Ask a question about your invoice. Get help with amounts, parties, missing fields, or the active country profile.</p>
               <div class="key-card">
-                <div class="key-card-heading"><label for="apiKeyInput">Kendi OpenAI API anahtarın</label><span class="key-state" id="keyState">Ayarlanmadı</span></div>
-                <div class="key-input-row"><input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-proj-…" /><button id="clearKeyButton" type="button" title="Anahtarı temizle">×</button></div>
-                <p class="key-note"><span>⌁</span> Anahtar yalnızca bu istekte HTTPS header olarak kullanılır; saklanmaz ve Git/Vercel’e yazılmaz. Sadece güvendiğiniz deployment’ta kullanın.</p>
+                <div class="key-card-heading"><label for="apiKeyInput">Your OpenAI API key</label><span class="key-state" id="keyState">Not set</span></div>
+                <div class="key-input-row"><input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-proj-…" /><button id="clearKeyButton" type="button" title="Clear API key">×</button></div>
+                <p class="key-note"><span>⌁</span> The key is used only for this request as an HTTPS header; it is not stored or written to Git/Vercel. Use it only on a deployment you trust.</p>
               </div>
-              <div class="chat-log" id="chatLog"><div class="chat-message assistant"><span class="avatar">✦</span><div>Hazırım. Bir fatura yükleyin veya örneğin “KDV dahil toplam nedir?” diye sorun.</div></div></div>
-              <form class="chat-form" id="chatForm"><input id="chatInput" autocomplete="off" placeholder="Faturanız hakkında sorun…" /><button type="submit" aria-label="Soruyu gönder">↗</button></form>
-              <div class="suggestions"><button data-question="Bu faturanın toplam tutarı nedir?">Toplamı göster</button><button data-question="Hangi alanlar eksik?">Eksik alanları bul</button><button data-question="Bu profil neyi kontrol ediyor?">Profil hakkında</button></div>
+              <div class="chat-log" id="chatLog"><div class="chat-message assistant"><span class="avatar">✦</span><div>Ready. Load an invoice or ask something like “What is the total including VAT?”</div></div></div>
+              <form class="chat-form" id="chatForm"><input id="chatInput" autocomplete="off" placeholder="Ask about your invoice…" /><button type="submit" aria-label="Send question">↗</button></form>
+              <div class="suggestions"><button data-question="What is the total amount on this invoice?">Show total</button><button data-question="Which fields are missing?">Find missing fields</button><button data-question="What does this profile check?">About the profile</button></div>
             </div>
           </div>
 
           <div class="right-column">
-            <div class="preview-toolbar"><div><span class="section-kicker">LIVE PREVIEW</span><h2>Belge görünümü</h2></div><div class="toolbar-actions"><button id="printButton" title="Yazdır">⤓ <span>Yazdır</span></button><button id="fullscreenButton" title="Tam ekran">⛶</button></div></div>
-            <div class="preview-wrap" id="previewWrap"><div class="preview-placeholder" id="previewPlaceholder"><div class="placeholder-art"><span>✦</span></div><h3>Belge önizlemesi hazır</h3><p>Faturayı doğruladığınızda temiz ve okunabilir bir görünüm burada oluşur.</p></div><article class="invoice-paper hidden" id="invoicePaper"></article></div>
-            <div class="preview-note"><span class="note-icon">i</span><span><strong>Görsel temsil</strong> — Bu görünüm, makine tarafından okunan alanların insan dostu bir özetidir. Resmi belge yerine geçmez.</span></div>
+            <div class="preview-toolbar"><div><span class="section-kicker">LIVE PREVIEW</span><h2>Document preview</h2></div><div class="toolbar-actions"><button id="printButton" title="Print">⤓ <span>Print</span></button><button id="fullscreenButton" title="Fullscreen">⛶</button></div></div>
+            <div class="preview-wrap" id="previewWrap"><div class="preview-placeholder" id="previewPlaceholder"><div class="placeholder-art"><span>✦</span></div><h3>Document preview is ready</h3><p>A clean, readable view will appear here after you validate the invoice.</p></div><article class="invoice-paper hidden" id="invoicePaper"></article></div>
+            <div class="preview-note"><span class="note-icon">i</span><span><strong>Visual representation</strong> — This view is a human-friendly summary of machine-read fields. It is not an official document.</span></div>
           </div>
         </section>
 
-        <section class="generic-strip"><div class="strip-copy"><span class="section-kicker">BUILT TO SCALE</span><h2>Tek veri modeli.<br /><em>Her ülkeye hazır.</em></h2><p>Ülke adaptörleriyle yerel alan adlarını, kimlik formatlarını ve e-fatura standartlarını tek bir kanonik modele bağlayın.</p></div><div class="country-cloud" id="countryCloud"></div></section>
+        <section class="generic-strip"><div class="strip-copy"><span class="section-kicker">BUILT TO SCALE</span><h2>One data model.<br /><em>Ready for every country.</em></h2><p>Connect local field names, identifier formats, and e-invoice standards to a single canonical model with country adapters.</p></div><div class="country-cloud" id="countryCloud"></div></section>
       </main>
-      <footer><span>© 2026 Invoice Atlas</span><span>Validation is a helper, not a tax authority decision.</span><span>v0.1 / Generic foundation</span></footer>
+      <footer>
+        <span>© 2026 Invoice Atlas</span>
+        <span>Validation is a helper, not a tax authority decision.</span>
+        <span class="contact-links"><strong>Özgür Çelik</strong><a href="mailto:celikonline@gmail.com">celikonline@gmail.com</a><a href="tel:+905339672528">+90 533 967 25 28</a><a href="https://www.linkedin.com/in/ozgurcelik26/" target="_blank" rel="noreferrer">LinkedIn ↗</a></span>
+        <span>v0.1 / Generic foundation</span>
+      </footer>
     </div>
     <div class="toast" id="toast" role="status"></div>
     <script src="/app.js"></script>
