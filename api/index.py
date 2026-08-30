@@ -241,7 +241,7 @@ def parse_xml_invoice(raw: str) -> dict[str, Any]:
         party_node = next((n for n in root.iter() if local_name(n.tag) in aliases), None)
         if party_node is None:
             return {"name": "", "address": "", "vat_id": ""}
-        names = descendants(party_node, {"registrationname", "name", "companyname", "businessname", "corporatename", "denomination", "legalname", "suppliername", "customername", "sellerorganisationname", "buyerorganisationname", "nazwa"})
+        names = descendants(party_node, {"registrationname", "name", "companyname", "businessname", "corporatename", "denomination", "denominazione", "legalname", "suppliername", "customername", "sellerorganisationname", "buyerorganisationname", "nazwa"})
         addresses = descendants(party_node, {"streetname", "addressline", "cityname", "address", "city"})
         ids = descendants(party_node, {"companyid", "vatid", "taxschemeid", "taxidentificationnumber", "suppliertaxnumber", "sellerpartyidentifier", "buyerpartyidentifier", "vatnumber", "taxnumber", "taxpayerid", "nip", "idcodice"})
         return {"name": names[0] if names else "", "address": ", ".join(addresses[:3]), "vat_id": ids[0] if ids else ""}
@@ -255,7 +255,7 @@ def parse_xml_invoice(raw: str) -> dict[str, Any]:
         "lines": lines,
         "net_total": pick("taxexclusiveamount", "lineextensionamount", "subtotal", "imponibileimporto", "invoicetotalvatexcludedamount", "totalnetvalue", "invoicenetamount", "p131"),
         "vat_total": pick("taxamount", "vatamount", "taxamounttotal", "imposta", "invoicetotalvatamount", "totalvatamount", "invoicevatamount", "p141"),
-        "gross_total": pick("taxinclusiveamount", "payableamount", "totalamount", "amount", "importototale", "invoicetotalvatincludedamount", "totalgrossamount", "invoicegrossamount", "p15"),
+        "gross_total": pick("taxinclusiveamount", "payableamount", "totalamount", "amount", "importototale", "importopagamento", "invoicetotalvatincludedamount", "totalgrossamount", "invoicegrossamount", "p15"),
         "vat_id": pick("companyid", "vatid", "taxschemeid", "taxidentificationnumber", "vatnumber", "taxnumber"),
         "payment_reference": pick("paymentid", "variable_symbol", "paymentreference"), "format": "XML",
     }
