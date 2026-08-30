@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/key.css" />
+    <link rel="stylesheet" href="/map.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -28,7 +29,23 @@
       <main id="top">
         <section class="hero">
           <div class="eyebrow"><span class="eyebrow-line"></span> E-FATURA OPERASYON MERKEZİ <span class="eyebrow-line"></span></div>
-          <h1>Faturanızı anlayın.<br /><em>Güvenle ilerleyin.</em></h1>
+          <div class="map-picker" aria-label="Haritadan ülke seçin">
+            <div class="map-picker-head"><div><span class="section-kicker">COUNTRY SELECTOR</span><h2>Haritadan ülkenizi seçin</h2></div><span class="map-current" id="mapCurrent">SK · Slovensko</span></div>
+            <svg class="country-map" viewBox="0 0 760 340" role="img" aria-label="Ülke seçim haritası">
+              <path class="map-backdrop" d="M102 111l39-38 62 11 37-35 73 14 56-16 65 22 69-26 74 32 66-9 78 44-36 72 20 51-61 39-57-6-71 30-91-21-57 15-91-36-62-57z" />
+              <g class="map-country" data-country="GB" role="button" tabindex="0" aria-label="Birleşik Krallık"><path d="M134 105l-13-21 7-34 18-13 14 23-5 25 13 22-15 26z" /><text x="130" y="133">GB</text></g>
+              <g class="map-country" data-country="ES" role="button" tabindex="0" aria-label="İspanya"><path d="M153 220l30-31 76 5 28 31-35 34-71-6z" /><text x="201" y="241">ES</text></g>
+              <g class="map-country" data-country="FR" role="button" tabindex="0" aria-label="Fransa"><path d="M228 151l42-22 41 25-9 56-29 25-48-19-21-33z" /><text x="253" y="180">FR</text></g>
+              <g class="map-country" data-country="DE" role="button" tabindex="0" aria-label="Almanya"><path d="M318 100l36-12 35 28-11 61-30 22-31-28 8-30-17-19z" /><text x="331" y="137">DE</text></g>
+              <g class="map-country" data-country="NL" role="button" tabindex="0" aria-label="Hollanda"><path d="M308 88l24-11 18 14-4 26-23 5-18-14z" /><text x="312" y="94">NL</text></g>
+              <g class="map-country" data-country="CZ" role="button" tabindex="0" aria-label="Çekya"><path d="M359 143l42-13 30 17-18 29-46 4-18-20z" /><text x="374" y="158">CZ</text></g>
+              <g class="map-country active" data-country="SK" role="button" tabindex="0" aria-label="Slovakya"><path d="M402 157l46-9 35 18-25 24-43 1-21-17z" /><text x="425" y="174">SK</text></g>
+              <g class="map-country" data-country="IT" role="button" tabindex="0" aria-label="İtalya"><path d="M343 200l35 5 26 30-12 29-17-15-4-26-34-8z" /><text x="354" y="223">IT</text></g>
+              <g class="map-country map-country-us" data-country="US" role="button" tabindex="0" aria-label="Amerika Birleşik Devletleri"><rect x="548" y="238" width="142" height="62" rx="14" /><text x="602" y="275">US</text></g>
+              <path class="map-route" d="M461 172c38 14 64 29 93 64" />
+            </svg>
+            <div class="map-picker-foot"><span><i class="map-dot"></i><strong id="mapCurrentName">Slovakia</strong> profili aktif</span><span class="map-hint">Ülke koduna tıklayın <b>↗</b></span></div>
+          </div>
           <p class="hero-copy">XML veya JSON e-faturanızı yapıştırın; ülke profilinize göre kontrol edin, okunabilir bir belgeye dönüştürün ve AI Copilot’a doğrudan sorun.</p>
           <div class="hero-metrics">
             <div><strong>01</strong><span>Yapıştır</span></div><div class="metric-arrow">→</div>

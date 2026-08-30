@@ -17,13 +17,16 @@ function showToast(message) { const toast = $('toast'); toast.textContent = mess
 function selectedCountry() { return $('country').value || 'SK'; }
 function updateCharCount() { $('charCount').textContent = `${$('invoiceInput').value.length.toLocaleString('tr-TR')} karakter`; }
 function profileChanged() { const profile = state.countries.find((item) => item.code === selectedCountry()); if (profile) $('profileStandard').textContent = profile.standard; }
+function updateMapState() { const code = selectedCountry(); document.querySelectorAll('.map-country').forEach((country) => country.classList.toggle('active', country.dataset.country === code)); const profile = state.countries.find((item) => item.code === code); if (profile) { $('mapCurrent').textContent = `${profile.code} · ${profile.native || profile.name}`; $('mapCurrentName').textContent = profile.name; } }
+function chooseCountry(code) { if (!state.countries.some((country) => country.code === code)) return; $('country').value = code; profileChanged(); updateMapState(); showToast(`${code} ülke profili seçildi.`); }
+function bindMapCountries() { document.querySelectorAll('.map-country').forEach((country) => { country.addEventListener('click', () => chooseCountry(country.dataset.country)); country.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); chooseCountry(country.dataset.country); } }); }); }
 
 async function loadCountries() {
   try {
     const response = await fetch('/api/countries'); state.countries = (await response.json()).countries;
   } catch { state.countries = [{code:'SK',name:'Slovakia',native:'Slovensko',standard:'EN 16931 / Peppol BIS Billing 3.0'}]; }
   $('country').innerHTML = state.countries.map((country) => `<option value="${country.code}">${country.code} · ${escapeHtml(country.native || country.name)}</option>`).join('');
-  $('country').value = 'SK'; profileChanged();
+  $('country').value = 'SK'; profileChanged(); bindMapCountries(); updateMapState();
   $('countryCloud').innerHTML = state.countries.map((country) => `<span class="${country.code === 'SK' ? 'active' : ''}">${country.code}</span>`).join('');
 }
 
@@ -61,7 +64,7 @@ function getApiKey() { return $('apiKeyInput').value.trim(); }
 function updateKeyState() { const hasKey = Boolean(getApiKey()); $('keyState').textContent = hasKey ? 'Bu oturum için hazır' : 'Ayarlanmadı'; $('keyState').className = `key-state ${hasKey ? 'ready' : ''}`; }
 
 $('invoiceInput').value = sampleInvoice; updateCharCount();
-$('invoiceInput').addEventListener('input', updateCharCount); $('country').addEventListener('change', profileChanged); $('validateButton').addEventListener('click', validate);
+$('invoiceInput').addEventListener('input', updateCharCount); $('country').addEventListener('change', () => { profileChanged(); updateMapState(); }); $('validateButton').addEventListener('click', validate);
 $('sampleButton').addEventListener('click', () => { $('invoiceInput').value = sampleInvoice; updateCharCount(); showToast('Örnek Slovakya UBL faturası yüklendi.'); });
 $('clearButton').addEventListener('click', () => { $('invoiceInput').value = ''; updateCharCount(); $('previewPlaceholder').classList.remove('hidden'); $('invoicePaper').classList.add('hidden'); $('validationEmpty').classList.remove('hidden'); $('validationContent').classList.add('hidden'); $('statusBadge').className = 'status-badge neutral'; $('statusBadge').textContent = 'Bekliyor'; });
 $('chatForm').addEventListener('submit', (event) => { event.preventDefault(); ask($('chatInput').value.trim()); }); document.querySelectorAll('.suggestions button').forEach((button) => button.addEventListener('click', () => ask(button.dataset.question)));
