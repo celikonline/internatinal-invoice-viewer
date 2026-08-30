@@ -24,7 +24,7 @@ Sonra `http://127.0.0.1:8000` adresini açın. Lokal server FastAPI API'sini ça
 
 ## AI Copilot
 
-`.env` içine `OPENAI_API_KEY` ve isteğe bağlı `OPENAI_MODEL` ekleyin. Anahtar yoksa uygulama temel alan sorularını yerel olarak yanıtlar. Vergi uyumluluğu için resmi ülke doğrulama servisleri, imza doğrulama ve şema/iş kuralı paketleri ayrıca adapter katmanına eklenmelidir.
+Copilot panelindeki “Kendi OpenAI API anahtarın” alanına müşteri kendi anahtarını girebilir. Anahtar `X-OpenAI-API-Key` header'ı ile yalnızca o istekte kullanılır; uygulama tarafından kaydedilmez, loglanmaz ve Git/Vercel'e yazılmaz. Anahtar girilmezse temel alan soruları yerel fallback ile yanıtlanır. Sunucu sahibi anahtarıyla çalıştırmak isterseniz `.env` içine `OPENAI_API_KEY` ve isteğe bağlı `OPENAI_MODEL` ekleyebilirsiniz.
 
 ## Git ve Vercel
 
@@ -37,7 +37,6 @@ git remote add origin <GITHUB_REPO_URL>
 git push -u origin main
 ```
 
-Vercel'de repo'yu import edin. Framework preset için `Other` seçilebilir; `vercel.json` Python API ve statik frontend route'larını tanımlar. Project Settings → Environment Variables bölümüne `OPENAI_API_KEY` ekleyin.
+Vercel'de repo'yu import edin. Framework preset için `Other` seçilebilir; `vercel.json` Python API ve statik frontend route'larını tanımlar. Müşteri anahtarı kullanacağı için Vercel'e `OPENAI_API_KEY` eklemek zorunlu değildir. Kullanıcıların yalnızca güvendikleri deployment'a anahtar girmesi gerekir; OpenAI API anahtarı paylaşılmamalıdır.
 
 > Not: Bu proje resmi vergi otoritesi onayı veya hukuki uyumluluk kararı vermez; validasyon katmanı genişletilebilir bir ürün temelidir.
-

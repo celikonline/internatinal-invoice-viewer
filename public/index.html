@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/key.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -69,6 +70,11 @@
             <div class="panel copilot-panel">
               <div class="panel-heading compact"><div><span class="section-kicker">03 / COPILOT</span><h2>AI Invoice Copilot</h2></div><span class="ai-chip"><span>✦</span> Yardımcı</span></div>
               <p class="copilot-intro">Faturanız hakkında bir soru sorun. Tutar, taraf, eksik alan veya aktif ülke profiliyle ilgili yardımcı olayım.</p>
+              <div class="key-card">
+                <div class="key-card-heading"><label for="apiKeyInput">Kendi OpenAI API anahtarın</label><span class="key-state" id="keyState">Ayarlanmadı</span></div>
+                <div class="key-input-row"><input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-proj-…" /><button id="clearKeyButton" type="button" title="Anahtarı temizle">×</button></div>
+                <p class="key-note"><span>⌁</span> Anahtar yalnızca bu istekte HTTPS header olarak kullanılır; saklanmaz ve Git/Vercel’e yazılmaz. Sadece güvendiğiniz deployment’ta kullanın.</p>
+              </div>
               <div class="chat-log" id="chatLog"><div class="chat-message assistant"><span class="avatar">✦</span><div>Hazırım. Bir fatura yükleyin veya örneğin “KDV dahil toplam nedir?” diye sorun.</div></div></div>
               <form class="chat-form" id="chatForm"><input id="chatInput" autocomplete="off" placeholder="Faturanız hakkında sorun…" /><button type="submit" aria-label="Soruyu gönder">↗</button></form>
               <div class="suggestions"><button data-question="Bu faturanın toplam tutarı nedir?">Toplamı göster</button><button data-question="Hangi alanlar eksik?">Eksik alanları bul</button><button data-question="Bu profil neyi kontrol ediyor?">Profil hakkında</button></div>
@@ -90,4 +96,3 @@
     <script src="/app.js"></script>
   </body>
 </html>
-

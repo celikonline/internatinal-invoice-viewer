@@ -318,8 +318,9 @@ def fallback_answer(question: str, invoice: dict[str, Any] | None, profile: dict
     return f"Fatura {invoice.get('invoice_id') or 'numarasız'} olarak okundu. {len(invoice.get('lines') or [])} satır ve {invoice.get('currency') or 'belirtilmemiş'} para birimi tespit ettim. Tutar, taraflar veya {profile['name']} profili hakkında sorabilirsiniz."
 
 
-def openai_answer(question: str, invoice: dict[str, Any] | None, profile: dict[str, Any]) -> str | None:
-    api_key = os.getenv("OPENAI_API_KEY")
+def openai_answer(question: str, invoice: dict[str, Any] | None, profile: dict[str, Any], user_api_key: str | None = None) -> str | None:
+    # A customer key is accepted for one request only. It is never persisted or logged.
+    api_key = user_api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
     payload = {"model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"), "temperature": 0.2, "messages": [
@@ -368,8 +369,12 @@ async def ask(request: Request):
         return JSONResponse({"error": "Invalid JSON request"}, status_code=400)
     code = country.upper() if country.upper() in COUNTRY_PROFILES else "SK"
     profile = COUNTRY_PROFILES[code]
-    answer = openai_answer(question, invoice, profile)
-    return JSONResponse({"answer": answer or fallback_answer(question, invoice, profile), "provider": "openai" if answer else "local", "country": code})
+    user_api_key = request.headers.get("x-openai-api-key", "").strip()
+    if user_api_key and (len(user_api_key) > 300 or any(character.isspace() for character in user_api_key)):
+        user_api_key = None
+    answer = openai_answer(question, invoice, profile, user_api_key=user_api_key)
+    provider = "openai-user-key" if answer and user_api_key else ("openai-server-key" if answer else "local")
+    return JSONResponse({"answer": answer or fallback_answer(question, invoice, profile), "provider": provider, "country": code}, headers={"Cache-Control": "no-store"})
 
 
 routes = [

@@ -55,12 +55,16 @@ async function validate() {
 }
 
 function addChat(role, message) { const log = $('chatLog'); const row = document.createElement('div'); row.className = `chat-message ${role}`; row.innerHTML = role === 'assistant' ? `<span class="avatar">✦</span><div>${escapeHtml(message)}</div>` : `<div>${escapeHtml(message)}</div>`; log.appendChild(row); log.scrollTop = log.scrollHeight; }
-async function ask(question) { if (!question) return; addChat('user', question); $('chatInput').value = ''; try { const response = await fetch('/api/ask', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,invoice:state.result?.invoice || null,country:selectedCountry()})}); const data = await response.json(); addChat('assistant', data.answer); } catch { addChat('assistant', 'Copilot bağlantısı şu anda kullanılamıyor.'); } }
+async function ask(question) { if (!question) return; addChat('user', question); $('chatInput').value = ''; try { const headers = {'Content-Type':'application/json'}; const apiKey = getApiKey(); if (apiKey) headers['X-OpenAI-API-Key'] = apiKey; const response = await fetch('/api/ask', {method:'POST',headers,body:JSON.stringify({question,invoice:state.result?.invoice || null,country:selectedCountry()})}); const data = await response.json(); addChat('assistant', data.answer || data.error || 'Copilot cevap veremedi.'); } catch { addChat('assistant', 'Copilot bağlantısı şu anda kullanılamıyor.'); } }
+
+function getApiKey() { return $('apiKeyInput').value.trim(); }
+function updateKeyState() { const hasKey = Boolean(getApiKey()); $('keyState').textContent = hasKey ? 'Bu oturum için hazır' : 'Ayarlanmadı'; $('keyState').className = `key-state ${hasKey ? 'ready' : ''}`; }
 
 $('invoiceInput').value = sampleInvoice; updateCharCount();
 $('invoiceInput').addEventListener('input', updateCharCount); $('country').addEventListener('change', profileChanged); $('validateButton').addEventListener('click', validate);
 $('sampleButton').addEventListener('click', () => { $('invoiceInput').value = sampleInvoice; updateCharCount(); showToast('Örnek Slovakya UBL faturası yüklendi.'); });
 $('clearButton').addEventListener('click', () => { $('invoiceInput').value = ''; updateCharCount(); $('previewPlaceholder').classList.remove('hidden'); $('invoicePaper').classList.add('hidden'); $('validationEmpty').classList.remove('hidden'); $('validationContent').classList.add('hidden'); $('statusBadge').className = 'status-badge neutral'; $('statusBadge').textContent = 'Bekliyor'; });
 $('chatForm').addEventListener('submit', (event) => { event.preventDefault(); ask($('chatInput').value.trim()); }); document.querySelectorAll('.suggestions button').forEach((button) => button.addEventListener('click', () => ask(button.dataset.question)));
+$('apiKeyInput').addEventListener('input', updateKeyState); $('clearKeyButton').addEventListener('click', () => { $('apiKeyInput').value = ''; updateKeyState(); });
 $('printButton').addEventListener('click', () => { if (!state.result?.invoice) { showToast('Önce faturayı doğrulayın.'); return; } window.print(); }); $('fullscreenButton').addEventListener('click', () => $('previewWrap').requestFullscreen?.());
 loadCountries();
