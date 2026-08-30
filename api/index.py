@@ -108,6 +108,11 @@ COUNTRY_PROFILES: dict[str, dict[str, Any]] = {
 }
 
 
+SAMPLE_FORMATS: dict[str, str] = {
+    "SK": "UBL 2.1 XML / EN 16931", "AT": "ebInterface XML", "BE": "Peppol BIS UBL XML", "BG": "EN 16931 UBL XML", "HR": "eRacun UBL XML", "CY": "Peppol BIS UBL XML", "CZ": "ISDOC XML", "DK": "OIOUBL XML", "EE": "e-arve UBL XML", "FI": "Finvoice XML", "FR": "Factur-X CII XML", "DE": "XRechnung UBL XML", "GR": "myDATA JSON", "HU": "Online Szamla XML", "IE": "Peppol BIS UBL XML", "IT": "FatturaPA XML", "LV": "e-rekin UBL XML", "LT": "eSaskaita UBL XML", "LU": "Peppol BIS UBL XML", "MT": "Peppol BIS UBL XML", "NL": "SI-UBL XML", "PL": "KSeF FA(3) XML", "PT": "CIUS-PT UBL XML", "RO": "RO e-Factura UBL XML", "SI": "e-SLOG XML", "ES": "Facturae XML", "SE": "Svefaktura XML", "NO": "EHF XML", "IS": "Peppol BIS UBL XML", "LI": "Peppol BIS UBL XML", "CH": "Swiss QR / EN 16931 XML", "GB": "Peppol BIS UBL XML", "US": "Universal invoice JSON", "TR": "UBL-TR XML", "EG": "ETA e-Invoice JSON", "SA": "ZATCA FATOORA UBL XML",
+}
+
+
 def local_name(tag: str) -> str:
     return tag.rsplit("}", 1)[-1].lower().replace("-", "").replace("_", "")
 
@@ -141,30 +146,41 @@ def parse_json_invoice(raw: str) -> dict[str, Any]:
     source = json.loads(raw)
     if not isinstance(source, dict):
         raise ValueError("JSON root must be an object")
-    seller = source.get("seller") or source.get("supplier") or {}
-    buyer = source.get("buyer") or source.get("customer") or {}
-    raw_lines = source.get("lines") or source.get("items") or []
+    header = source.get("invoiceHeader") or source.get("header") or {}
+    summary = source.get("invoiceSummary") or source.get("summary") or {}
+    issuer = source.get("issuer") or {}
+    counterpart = source.get("counterpart") or {}
+    seller = source.get("seller") or source.get("supplier") or issuer
+    buyer = source.get("buyer") or source.get("customer") or source.get("receiver") or counterpart
+    raw_lines = source.get("lines") or source.get("items") or source.get("invoiceLines") or source.get("invoiceDetails") or []
     lines = []
     for index, item in enumerate(raw_lines, 1):
         if not isinstance(item, dict):
             continue
         quantity = first_value(item, "quantity", "qty", "count") or 1
-        unit_price = first_value(item, "unit_price", "unitPrice", "price", "net") or 0
+        unit_value = item.get("unitValue") or {}
+        if isinstance(unit_value, dict):
+            unit_price = first_value(item, "unit_price", "unitPrice", "price", "net", "netValue") or first_value(unit_value, "amount", "amountEGP") or 0
+        else:
+            unit_price = first_value(item, "unit_price", "unitPrice", "price", "net", "netValue") or 0
         lines.append({
-            "description": first_value(item, "description", "name", "title") or f"Line {index}",
+            "description": first_value(item, "description", "name", "title", "itemDescription", "itemName") or f"Line {index}",
             "quantity": str(quantity), "unit_price": str(unit_price),
-            "vat_rate": str(first_value(item, "vat_rate", "vatRate", "tax_rate") or "0"),
+            "vat_rate": str(first_value(item, "vat_rate", "vatRate", "tax_rate", "vatPercentage") or "0"),
         })
-    totals = source.get("totals") or {}
+    totals = source.get("totals") or summary
+    tax_totals = source.get("taxTotals") or []
+    first_tax = tax_totals[0] if isinstance(tax_totals, list) and tax_totals and isinstance(tax_totals[0], dict) else {}
+    line_currency = raw_lines[0].get("unitValue", {}).get("currencySold") if raw_lines and isinstance(raw_lines[0], dict) and isinstance(raw_lines[0].get("unitValue"), dict) else ""
     return {
-        "invoice_id": str(first_value(source, "invoice_id", "invoiceNumber", "number", "id")),
-        "issue_date": str(first_value(source, "issue_date", "issueDate", "date")),
-        "currency": str(first_value(source, "currency", "documentCurrencyCode") or ""),
+        "invoice_id": str(first_value(source, "invoice_id", "invoiceNumber", "number", "id", "internalId", "uniqueIdentifier") or first_value(header, "invoice_id", "invoiceNumber", "number", "aa")),
+        "issue_date": str(first_value(source, "issue_date", "issueDate", "date", "dateTimeIssued") or first_value(header, "issue_date", "issueDate", "date")),
+        "currency": str(first_value(source, "currency", "documentCurrencyCode") or line_currency or ""),
         "seller": normalize_party(seller), "buyer": normalize_party(buyer), "lines": lines,
-        "net_total": str(first_value(totals, "net", "net_total", "taxExclusiveAmount") or first_value(source, "net_total", "subtotal") or ""),
-        "vat_total": str(first_value(totals, "vat", "vat_total", "taxAmount") or first_value(source, "vat_total", "tax") or ""),
-        "gross_total": str(first_value(totals, "gross", "gross_total", "taxInclusiveAmount", "total") or first_value(source, "total", "amount") or ""),
-        "vat_id": str(first_value(source, "vat_id", "vatId", "tax_id", "taxId") or first_value(seller, "vat_id", "vatId", "tax_id")),
+        "net_total": str(first_value(totals, "net", "net_total", "taxExclusiveAmount", "totalNetValue", "netAmount", "totalSalesAmount") or first_value(source, "net_total", "subtotal", "netAmount", "totalSalesAmount") or ""),
+        "vat_total": str(first_value(totals, "vat", "vat_total", "taxAmount", "totalVatAmount") or first_value(source, "vat_total", "tax", "totalVatAmount") or first_value(first_tax, "amount", "taxAmount") or ""),
+        "gross_total": str(first_value(totals, "gross", "gross_total", "taxInclusiveAmount", "total", "totalGrossValue") or first_value(source, "total", "amount", "totalAmount") or ""),
+        "vat_id": str(first_value(source, "vat_id", "vatId", "tax_id", "taxId") or first_value(seller, "vat_id", "vatId", "tax_id", "vatNumber", "id")),
         "payment_reference": str(first_value(source, "payment_reference", "paymentReference", "variable_symbol") or ""),
         "format": "JSON",
     }
@@ -179,9 +195,9 @@ def normalize_party(party: Any) -> dict[str, str]:
     if isinstance(address, dict):
         address = ", ".join(str(v) for v in [address.get("street"), address.get("city"), address.get("postal_code"), address.get("country")] if v)
     return {
-        "name": str(first_value(party, "name", "legal_name", "company") or ""),
+        "name": str(first_value(party, "name", "legal_name", "company", "businessName", "corporateName") or ""),
         "address": str(address),
-        "vat_id": str(first_value(party, "vat_id", "vatId", "tax_id", "taxId") or ""),
+        "vat_id": str(first_value(party, "vat_id", "vatId", "tax_id", "taxId", "vatNumber", "id") or ""),
     }
 
 
@@ -205,37 +221,42 @@ def parse_xml_invoice(raw: str) -> dict[str, Any]:
         return [text_of(n) for n in parent.iter() if local_name(n.tag) in names and text_of(n)]
 
     lines = []
-    line_nodes = [n for n in root.iter() if local_name(n.tag) in {"invoiceline", "includedinvoicelineitem"}]
+    line_nodes = [n for n in root.iter() if local_name(n.tag) in {"invoiceline", "includedinvoicelineitem", "dettagliolinee", "invoicerow", "line", "fawiersz"}]
     if not line_nodes:
         line_nodes = [n for n in root.iter() if local_name(n.tag) == "item"]
     for index, line in enumerate(line_nodes, 1):
-        values = descendants(line, {"name", "description", "itemname"})
-        quantities = descendants(line, {"invoicedquantity", "quantity", "basequantity"})
-        prices = descendants(line, {"priceamount", "unitprice", "unitnetprice"})
-        rates = descendants(line, {"percent", "taxrate", "vatpercent"})
+        values = descendants(line, {"name", "description", "itemname", "itemdescription", "articlename", "descrizione", "linedescription", "p7"})
+        quantities = descendants(line, {"invoicedquantity", "quantity", "basequantity", "quantita", "p8b"})
+        prices = descendants(line, {"priceamount", "unitprice", "unitnetprice", "unitpricenetamount", "prezzounitario", "unitpricewithouttax", "p9a", "value"})
+        rates = descendants(line, {"percent", "taxrate", "vatpercent", "taxpercentage", "aliquotaiva", "taxratevalue", "invoicerowvatratepercent", "p12"})
         if values or quantities or prices:
             lines.append({"description": values[0] if values else f"Line {index}", "quantity": quantities[0] if quantities else "1", "unit_price": prices[0] if prices else "0", "vat_rate": rates[0] if rates else "0"})
 
     def party_data(party_type: str) -> dict[str, str]:
-        party_node = next((n for n in root.iter() if local_name(n.tag) == party_type), None)
+        aliases = {party_type}
+        if party_type == "accountingsupplierparty":
+            aliases.update({"supplierinfo", "sellerparty", "cedenteprestatore", "issuer", "seller"})
+        if party_type == "accountingcustomerparty":
+            aliases.update({"customerinfo", "buyerparty", "cessionariocommittente", "receiver", "buyer"})
+        party_node = next((n for n in root.iter() if local_name(n.tag) in aliases), None)
         if party_node is None:
             return {"name": "", "address": "", "vat_id": ""}
-        names = descendants(party_node, {"registrationname", "name", "companyname"})
-        addresses = descendants(party_node, {"streetname", "addressline", "cityname"})
-        ids = descendants(party_node, {"companyid", "vatid", "taxschemeid"})
+        names = descendants(party_node, {"registrationname", "name", "companyname", "businessname", "corporatename", "denomination", "legalname", "suppliername", "customername", "sellerorganisationname", "buyerorganisationname", "nazwa"})
+        addresses = descendants(party_node, {"streetname", "addressline", "cityname", "address", "city"})
+        ids = descendants(party_node, {"companyid", "vatid", "taxschemeid", "taxidentificationnumber", "suppliertaxnumber", "sellerpartyidentifier", "buyerpartyidentifier", "vatnumber", "taxnumber", "taxpayerid", "nip", "idcodice"})
         return {"name": names[0] if names else "", "address": ", ".join(addresses[:3]), "vat_id": ids[0] if ids else ""}
 
     seller = party_data("accountingsupplierparty")
     buyer = party_data("accountingcustomerparty")
     return {
-        "invoice_id": pick("id", "invoicenumber", "number"), "issue_date": pick("issuedate", "invoicedate", "date"),
-        "currency": pick("documentcurrencycode", "currency", "currencyid"),
+        "invoice_id": pick("id", "invoicenumber", "number", "numero", "internalid", "p2"), "issue_date": pick("issuedate", "invoicedate", "date", "data", "invoicedate", "invoiceissuedate", "datetimestring", "p1"),
+        "currency": pick("documentcurrencycode", "currency", "currencyid", "divisa", "invoicecurrencycode", "invoicecurrency", "kodwaluty"),
         "seller": seller, "buyer": buyer,
         "lines": lines,
-        "net_total": pick("taxexclusiveamount", "lineextensionamount", "subtotal"),
-        "vat_total": pick("taxamount", "vatamount", "taxamounttotal"),
-        "gross_total": pick("taxinclusiveamount", "payableamount", "totalamount", "amount"),
-        "vat_id": pick("companyid", "vatid", "taxschemeid"),
+        "net_total": pick("taxexclusiveamount", "lineextensionamount", "subtotal", "imponibileimporto", "invoicetotalvatexcludedamount", "totalnetvalue", "invoicenetamount", "p131"),
+        "vat_total": pick("taxamount", "vatamount", "taxamounttotal", "imposta", "invoicetotalvatamount", "totalvatamount", "invoicevatamount", "p141"),
+        "gross_total": pick("taxinclusiveamount", "payableamount", "totalamount", "amount", "importototale", "invoicetotalvatincludedamount", "totalgrossamount", "invoicegrossamount", "p15"),
+        "vat_id": pick("companyid", "vatid", "taxschemeid", "taxidentificationnumber", "vatnumber", "taxnumber"),
         "payment_reference": pick("paymentid", "variable_symbol", "paymentreference"), "format": "XML",
     }
 
@@ -272,18 +293,18 @@ def parse_invoice(raw: str) -> dict[str, Any]:
 
 def validate_invoice(raw: str, country: str) -> dict[str, Any]:
     code = country.upper() if country.upper() in COUNTRY_PROFILES else "SK"
-    profile = COUNTRY_PROFILES[code]
+    profile = {**COUNTRY_PROFILES[code], "sample_format": SAMPLE_FORMATS.get(code, "Generic XML/JSON")}
     checks: list[dict[str, Any]] = []
     try:
         invoice = parse_invoice(raw)
     except (ET.ParseError, json.JSONDecodeError, ValueError) as exc:
-        return {"valid": False, "score": 0, "country": code, "profile": profile, "invoice": None, "checks": [{"severity": "error", "code": "parse_error", "message": "Belge okunamadı", "detail": str(exc), "field": "document"}], "error": "Belge formatı XML, JSON veya etiketli metin olmalı."}
+        return {"valid": False, "score": 0, "country": code, "profile": profile, "invoice": None, "checks": [{"severity": "error", "code": "parse_error", "message": "Could not read the document", "detail": str(exc), "field": "document"}], "error": "The document must be XML, JSON, or labeled text."}
 
     def check(code_: str, condition: bool, message: str, field: str, detail: str = "", severity: str = "error"):
-        checks.append({"severity": severity if not condition else "pass", "code": code_, "message": message if not condition else message.replace("Eksik", "Mevcut"), "detail": detail, "field": field})
+        checks.append({"severity": severity if not condition else "pass", "code": code_, "message": message if not condition else message.replace("Missing", "Present"), "detail": detail, "field": field})
 
-    check("invoice_id", bool(invoice["invoice_id"]), "Fatura numarası mevcut", "invoice_id", "Invoice ID / ID")
-    check("issue_date", bool(invoice["issue_date"]), "Düzenleme tarihi mevcut", "issue_date", "IssueDate / date")
+    check("invoice_id", bool(invoice["invoice_id"]), "Invoice number present", "invoice_id", "Invoice ID / ID")
+    check("issue_date", bool(invoice["issue_date"]), "Issue date present", "issue_date", "IssueDate / date")
     date_ok = False
     if invoice["issue_date"]:
         try:
@@ -291,11 +312,11 @@ def validate_invoice(raw: str, country: str) -> dict[str, Any]:
             date_ok = True
         except ValueError:
             date_ok = bool(re.match(r"^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}$", invoice["issue_date"]))
-    check("date_format", date_ok, "Tarih formatı tanınabilir", "issue_date", "ISO 8601 veya yerel tarih")
-    check("currency", bool(invoice["currency"]), "Para birimi mevcut", "currency", "DocumentCurrencyCode")
-    check("seller", bool(invoice["seller"]["name"]), "Satıcı bilgisi mevcut", "seller", "AccountingSupplierParty")
-    check("buyer", bool(invoice["buyer"]["name"]), "Alıcı bilgisi mevcut", "buyer", "AccountingCustomerParty")
-    check("vat_id", bool(invoice["vat_id"] or invoice["seller"]["vat_id"]), f"{profile['vat_label']} mevcut", "vat_id", "Tax identifier", "warning")
+    check("date_format", date_ok, "Recognizable date format", "issue_date", "ISO 8601 or local date")
+    check("currency", bool(invoice["currency"]), "Currency present", "currency", "DocumentCurrencyCode")
+    check("seller", bool(invoice["seller"]["name"]), "Seller information present", "seller", "AccountingSupplierParty")
+    check("buyer", bool(invoice["buyer"]["name"]), "Buyer information present", "buyer", "AccountingCustomerParty")
+    check("vat_id", bool(invoice["vat_id"] or invoice["seller"]["vat_id"]), f"{profile['vat_label']} present", "vat_id", "Tax identifier", "warning")
 
     line_total = Decimal("0.00")
     line_errors = 0
@@ -308,19 +329,19 @@ def validate_invoice(raw: str, country: str) -> dict[str, Any]:
     stated_net = money(invoice["net_total"])
     if invoice["lines"] and stated_net is not None:
         difference = abs(line_total.quantize(Decimal("0.01")) - stated_net)
-        check("line_math", difference <= Decimal("0.02"), "Satır toplamları ile net tutar uyumlu", "net_total", f"Satırlar {money_str(line_total)}, belge {money_str(stated_net)}")
+        check("line_math", difference <= Decimal("0.02"), "Line totals match the net amount", "net_total", f"Lines {money_str(line_total)}, document {money_str(stated_net)}")
     elif invoice["lines"]:
-        check("line_math", line_errors == 0, "Satır tutarları hesaplanabilir", "lines", f"{line_errors} satırda sayı formatı sorunu var", "warning")
+        check("line_math", line_errors == 0, "Line amounts can be calculated", "lines", f"Number format issue in {line_errors} line(s)", "warning")
     else:
-        check("lines", False, "En az bir fatura satırı önerilir", "lines", "Line items bulunamadı", "warning")
+        check("lines", False, "At least one invoice line is recommended", "lines", "No line items found", "warning")
 
     gross = money(invoice["gross_total"])
     net = money(invoice["net_total"])
     vat = money(invoice["vat_total"])
     if gross is not None and net is not None and vat is not None:
-        check("total_math", abs((net + vat) - gross) <= Decimal("0.02"), "Net + KDV = genel toplam", "gross_total", f"{money_str(net)} + {money_str(vat)} = {money_str(gross)}")
+        check("total_math", abs((net + vat) - gross) <= Decimal("0.02"), "Net + VAT = grand total", "gross_total", f"{money_str(net)} + {money_str(vat)} = {money_str(gross)}")
     else:
-        check("totals", bool(gross or net), "Toplam tutar alanları mevcut", "totals", "Net, KDV ve brüt toplam alanları")
+        check("totals", bool(gross or net), "Total amount fields present", "totals", "Net, VAT, and gross total fields")
 
     errors = sum(1 for item in checks if item["severity"] == "error")
     warnings = sum(1 for item in checks if item["severity"] == "warning")
@@ -331,18 +352,18 @@ def validate_invoice(raw: str, country: str) -> dict[str, Any]:
 def fallback_answer(question: str, invoice: dict[str, Any] | None, profile: dict[str, Any]) -> str:
     q = question.lower()
     if not invoice:
-        return "Önce bir fatura metni yapıştırıp Validate düğmesine basın. Ardından bu fatura hakkında alan, tutar ve ülke profili sorularını yanıtlayabilirim."
-    if any(word in q for word in ["tutar", "total", "amount", "ödenecek", "payable"]):
-        return f"Bu faturada brüt toplam {invoice.get('gross_total') or 'belirtilmemiş'} {invoice.get('currency') or profile.get('currency', '')}. Net toplam: {invoice.get('net_total') or 'belirtilmemiş'}, KDV: {invoice.get('vat_total') or 'belirtilmemiş'}."
-    if any(word in q for word in ["numara", "number", "id"]):
-        return f"Fatura numarası: {invoice.get('invoice_id') or 'belgede bulunamadı'}. Düzenleme tarihi: {invoice.get('issue_date') or 'belgede bulunamadı'}."
-    if any(word in q for word in ["satıcı", "seller", "supplier"]):
-        return f"Satıcı: {invoice.get('seller', {}).get('name') or 'belgede bulunamadı'} ({invoice.get('seller', {}).get('vat_id') or 'vergi numarası yok'})."
-    if any(word in q for word in ["alıcı", "buyer", "customer"]):
-        return f"Alıcı: {invoice.get('buyer', {}).get('name') or 'belgede bulunamadı'}."
-    if any(word in q for word in ["slovak", "slovakya", "sk", "profil"]):
-        return f"Aktif ülke profili {profile['name']}. Beklenen yaklaşım: {profile['standard']}; yerel otorite: {profile['authority']}. Bu demo doğrulaması resmi bir vergi otoritesi kararı değildir."
-    return f"Fatura {invoice.get('invoice_id') or 'numarasız'} olarak okundu. {len(invoice.get('lines') or [])} satır ve {invoice.get('currency') or 'belirtilmemiş'} para birimi tespit ettim. Tutar, taraflar veya {profile['name']} profili hakkında sorabilirsiniz."
+        return "Paste invoice text and click Validate first. Then I can answer questions about its fields, amounts, and country profile."
+    if any(word in q for word in ["total", "amount", "payable"]):
+        return f"The gross total is {invoice.get('gross_total') or 'not provided'} {invoice.get('currency') or profile.get('currency', '')}. Net total: {invoice.get('net_total') or 'not provided'}; VAT: {invoice.get('vat_total') or 'not provided'}."
+    if any(word in q for word in ["number", "id"]):
+        return f"Invoice number: {invoice.get('invoice_id') or 'not found in the document'}. Issue date: {invoice.get('issue_date') or 'not found in the document'}."
+    if any(word in q for word in ["seller", "supplier"]):
+        return f"Seller: {invoice.get('seller', {}).get('name') or 'not found in the document'} ({invoice.get('seller', {}).get('vat_id') or 'no tax number'})."
+    if any(word in q for word in ["buyer", "customer"]):
+        return f"Buyer: {invoice.get('buyer', {}).get('name') or 'not found in the document'}."
+    if any(word in q for word in ["slovak", "slovakia", "sk", "profile"]):
+        return f"The active country profile is {profile['name']}. Expected approach: {profile['standard']}; local authority: {profile['authority']}. This demo validation is not an official tax authority decision."
+    return f"I read the invoice as {invoice.get('invoice_id') or 'unnumbered'}. I found {len(invoice.get('lines') or [])} line(s) and the {invoice.get('currency') or 'unspecified'} currency. You can ask about amounts, parties, or the {profile['name']} profile."
 
 
 def openai_answer(question: str, invoice: dict[str, Any] | None, profile: dict[str, Any], user_api_key: str | None = None) -> str | None:
@@ -351,7 +372,7 @@ def openai_answer(question: str, invoice: dict[str, Any] | None, profile: dict[s
     if not api_key:
         return None
     payload = {"model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"), "temperature": 0.2, "messages": [
-        {"role": "system", "content": "You are an invoice validation copilot. Answer in Turkish, be concise, cite fields from the provided normalized invoice, and never claim official tax compliance. Explain missing data clearly."},
+        {"role": "system", "content": "You are an invoice validation copilot. Answer in English, be concise, cite fields from the provided normalized invoice, and never claim official tax compliance. Explain missing data clearly."},
         {"role": "user", "content": json.dumps({"country_profile": profile, "invoice": invoice, "question": question}, ensure_ascii=False)},
     ]}
     request = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(payload).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
@@ -368,7 +389,7 @@ async def health(request: Request):
 
 
 async def countries(request: Request):
-    return JSONResponse({"countries": [{"code": code, **profile} for code, profile in COUNTRY_PROFILES.items()]})
+    return JSONResponse({"countries": [{"code": code, **profile, "sample_format": SAMPLE_FORMATS.get(code, "Generic XML/JSON")} for code, profile in COUNTRY_PROFILES.items()]})
 
 
 async def validate(request: Request):
