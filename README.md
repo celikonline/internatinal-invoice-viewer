@@ -2,6 +2,24 @@
 
 A country-adaptable portal for XML, JSON, and text-based e-invoice validation and visual previews.
 
+## Portal screenshots
+
+### Country selector
+
+![Invoice Atlas country selector](docs/screenshots/1.png)
+
+### Invoice input and document preview
+
+![Invoice Atlas invoice input and document preview](docs/screenshots/2.png)
+
+### Validation summary
+
+![Invoice Atlas validation summary](docs/screenshots/3.png)
+
+### AI Invoice Copilot
+
+![Invoice Atlas AI Invoice Copilot](docs/screenshots/4.png)
+
 ## Features
 
 - Slovakia as the default profile, with core field, party, and amount checks based on EN 16931 / Peppol BIS Billing 3.0
