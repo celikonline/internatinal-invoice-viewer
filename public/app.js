@@ -18,7 +18,7 @@ function selectedCountry() { return $('country').value || 'SK'; }
 function updateCharCount() { $('charCount').textContent = `${$('invoiceInput').value.length.toLocaleString('tr-TR')} karakter`; }
 function profileChanged() { const profile = state.countries.find((item) => item.code === selectedCountry()); if (profile) $('profileStandard').textContent = profile.standard; }
 function updateMapState() { const code = selectedCountry(); document.querySelectorAll('.map-country').forEach((country) => country.classList.toggle('active', country.dataset.country === code)); const profile = state.countries.find((item) => item.code === code); if (profile) { $('mapCurrent').textContent = `${profile.code} · ${profile.native || profile.name}`; $('mapCurrentName').textContent = profile.name; } }
-function chooseCountry(code) { if (!state.countries.some((country) => country.code === code)) return; $('country').value = code; profileChanged(); updateMapState(); showToast(`${code} ülke profili seçildi.`); }
+function chooseCountry(code) { if (!state.countries.some((country) => country.code === code)) return; $('country').value = code; profileChanged(); updateMapState(); showToast(`${code} ülke profili seçildi.`); $('sourcePanel').scrollIntoView({behavior:'smooth', block:'start'}); setTimeout(() => $('invoiceInput').focus({preventScroll:true}), 450); }
 function bindMapCountries() { document.querySelectorAll('.map-country').forEach((country) => { country.addEventListener('click', () => chooseCountry(country.dataset.country)); country.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); chooseCountry(country.dataset.country); } }); }); }
 
 async function loadCountries() {
