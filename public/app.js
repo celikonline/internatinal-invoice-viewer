@@ -4,7 +4,7 @@ const sampleInvoice = `<Invoice xmlns="urn:oasis:names:specification:ubl:schema:
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
   <cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>Danube Digital s.r.o.</cbc:Name></cac:PartyName><cac:PostalAddress><cbc:StreetName>Prievozská 14</cbc:StreetName><cbc:CityName>Bratislava</cbc:CityName></cac:PostalAddress><cac:PartyTaxScheme><cbc:CompanyID>SK2020123456</cbc:CompanyID></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty>
   <cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>Nordic Retail AB</cbc:Name></cac:PartyName><cac:PostalAddress><cbc:StreetName>Vasagatan 8</cbc:StreetName><cbc:CityName>Stockholm</cbc:CityName></cac:PostalAddress></cac:Party></cac:AccountingCustomerParty>
-  <cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity>2</cbc:InvoicedQuantity><cac:Item><cbc:Name>Cloud workspace — annual</cbc:Name></cac:Item><cac:Price><cbc:PriceAmount>240.00</cbc:PriceAmount></cac:Price><cac:TaxCategory><cbc:Percent>20</cbc:Percent></cac:TaxCategory></cac:InvoiceLine>
+  <cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity>2</cbc:InvoicedQuantity><cac:Item><cbc:Name>Cloud workspace - annual</cbc:Name></cac:Item><cac:Price><cbc:PriceAmount>240.00</cbc:PriceAmount></cac:Price><cac:TaxCategory><cbc:Percent>20</cbc:Percent></cac:TaxCategory></cac:InvoiceLine>
   <cac:InvoiceLine><cbc:ID>2</cbc:ID><cbc:InvoicedQuantity>1</cbc:InvoicedQuantity><cac:Item><cbc:Name>Onboarding &amp; support</cbc:Name></cac:Item><cac:Price><cbc:PriceAmount>120.00</cbc:PriceAmount></cac:Price><cac:TaxCategory><cbc:Percent>20</cbc:Percent></cac:TaxCategory></cac:InvoiceLine>
   <cac:TaxTotal><cbc:TaxAmount>120.00</cbc:TaxAmount></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:TaxExclusiveAmount>600.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount>720.00</cbc:TaxInclusiveAmount><cbc:PayableAmount>720.00</cbc:PayableAmount></cac:LegalMonetaryTotal>
 </Invoice>`;
@@ -64,4 +64,3 @@ $('clearButton').addEventListener('click', () => { $('invoiceInput').value = '';
 $('chatForm').addEventListener('submit', (event) => { event.preventDefault(); ask($('chatInput').value.trim()); }); document.querySelectorAll('.suggestions button').forEach((button) => button.addEventListener('click', () => ask(button.dataset.question)));
 $('printButton').addEventListener('click', () => { if (!state.result?.invoice) { showToast('Önce faturayı doğrulayın.'); return; } window.print(); }); $('fullscreenButton').addEventListener('click', () => $('previewWrap').requestFullscreen?.());
 loadCountries();
-

@@ -16,19 +16,13 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
-
-
-app = FastAPI(title="Invoice Atlas API", version="1.0.0")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.routing import Mount, Route
+from starlette.staticfiles import StaticFiles
 
 PUBLIC_DIR = Path(__file__).resolve().parents[1] / "public"
 
@@ -85,17 +79,6 @@ COUNTRY_PROFILES: dict[str, dict[str, Any]] = {
         "reference": "https://www.irs.gov/", "rules": ["invoice_id", "issue_date", "currency", "seller", "buyer", "totals"],
     },
 }
-
-
-class ValidateRequest(BaseModel):
-    invoice: str = Field(min_length=1, max_length=2_000_000)
-    country: str = "SK"
-
-
-class AskRequest(BaseModel):
-    question: str = Field(min_length=1, max_length=2_000)
-    invoice: dict[str, Any] | None = None
-    country: str = "SK"
 
 
 def local_name(tag: str) -> str:
@@ -195,7 +178,10 @@ def parse_xml_invoice(raw: str) -> dict[str, Any]:
         return [text_of(n) for n in parent.iter() if local_name(n.tag) in names and text_of(n)]
 
     lines = []
-    for index, line in enumerate([n for n in root.iter() if local_name(n.tag) in {"invoiceline", "includedinvoicelineitem", "item"}], 1):
+    line_nodes = [n for n in root.iter() if local_name(n.tag) in {"invoiceline", "includedinvoicelineitem"}]
+    if not line_nodes:
+        line_nodes = [n for n in root.iter() if local_name(n.tag) == "item"]
+    for index, line in enumerate(line_nodes, 1):
         values = descendants(line, {"name", "description", "itemname"})
         quantities = descendants(line, {"invoicedquantity", "quantity", "basequantity"})
         prices = descendants(line, {"priceamount", "unitprice", "unitnetprice"})
@@ -203,14 +189,21 @@ def parse_xml_invoice(raw: str) -> dict[str, Any]:
         if values or quantities or prices:
             lines.append({"description": values[0] if values else f"Line {index}", "quantity": quantities[0] if quantities else "1", "unit_price": prices[0] if prices else "0", "vat_rate": rates[0] if rates else "0"})
 
-    party_names = [text_of(n) for n in root.iter() if local_name(n.tag) in {"registrationname", "name", "companyname"} and text_of(n)]
-    party_addresses = [text_of(n) for n in root.iter() if local_name(n.tag) in {"streetname", "addressline", "cityname"} and text_of(n)]
-    vat_ids = [text_of(n) for n in root.iter() if local_name(n.tag) in {"companyid", "vatid", "taxschemeid"} and text_of(n)]
+    def party_data(party_type: str) -> dict[str, str]:
+        party_node = next((n for n in root.iter() if local_name(n.tag) == party_type), None)
+        if party_node is None:
+            return {"name": "", "address": "", "vat_id": ""}
+        names = descendants(party_node, {"registrationname", "name", "companyname"})
+        addresses = descendants(party_node, {"streetname", "addressline", "cityname"})
+        ids = descendants(party_node, {"companyid", "vatid", "taxschemeid"})
+        return {"name": names[0] if names else "", "address": ", ".join(addresses[:3]), "vat_id": ids[0] if ids else ""}
+
+    seller = party_data("accountingsupplierparty")
+    buyer = party_data("accountingcustomerparty")
     return {
         "invoice_id": pick("id", "invoicenumber", "number"), "issue_date": pick("issuedate", "invoicedate", "date"),
         "currency": pick("documentcurrencycode", "currency", "currencyid"),
-        "seller": {"name": party_names[0] if party_names else "", "address": ", ".join(party_addresses[:3]), "vat_id": vat_ids[0] if vat_ids else ""},
-        "buyer": {"name": party_names[1] if len(party_names) > 1 else "", "address": ", ".join(party_addresses[3:6]), "vat_id": vat_ids[1] if len(vat_ids) > 1 else ""},
+        "seller": seller, "buyer": buyer,
         "lines": lines,
         "net_total": pick("taxexclusiveamount", "lineextensionamount", "subtotal"),
         "vat_total": pick("taxamount", "vatamount", "taxamounttotal"),
@@ -342,31 +335,52 @@ def openai_answer(question: str, invoice: dict[str, Any] | None, profile: dict[s
         return None
 
 
-@app.get("/api/health")
-def health():
-    return {"ok": True, "service": "invoice-atlas", "profiles": len(COUNTRY_PROFILES)}
+async def health(request: Request):
+    return JSONResponse({"ok": True, "service": "invoice-atlas", "profiles": len(COUNTRY_PROFILES)})
 
 
-@app.get("/api/countries")
-def countries():
-    return {"countries": [{"code": code, **profile} for code, profile in COUNTRY_PROFILES.items()]}
+async def countries(request: Request):
+    return JSONResponse({"countries": [{"code": code, **profile} for code, profile in COUNTRY_PROFILES.items()]})
 
 
-@app.post("/api/validate")
-def validate(request: ValidateRequest):
-    return validate_invoice(request.invoice, request.country)
+async def validate(request: Request):
+    try:
+        payload = await request.json()
+        invoice = str(payload.get("invoice", ""))
+        country = str(payload.get("country", "SK"))
+        if not invoice or len(invoice) > 2_000_000:
+            return JSONResponse({"error": "invoice must be between 1 and 2,000,000 characters"}, status_code=400)
+    except (ValueError, AttributeError):
+        return JSONResponse({"error": "Invalid JSON request"}, status_code=400)
+    return JSONResponse(validate_invoice(invoice, country))
 
 
-@app.post("/api/ask")
-def ask(request: AskRequest):
-    code = request.country.upper() if request.country.upper() in COUNTRY_PROFILES else "SK"
+async def ask(request: Request):
+    try:
+        payload = await request.json()
+        question = str(payload.get("question", "")).strip()
+        invoice = payload.get("invoice")
+        invoice = invoice if isinstance(invoice, dict) else None
+        country = str(payload.get("country", "SK"))
+        if not question or len(question) > 2_000:
+            return JSONResponse({"error": "question must be between 1 and 2,000 characters"}, status_code=400)
+    except (ValueError, AttributeError):
+        return JSONResponse({"error": "Invalid JSON request"}, status_code=400)
+    code = country.upper() if country.upper() in COUNTRY_PROFILES else "SK"
     profile = COUNTRY_PROFILES[code]
-    answer = openai_answer(request.question, request.invoice, profile)
-    return {"answer": answer or fallback_answer(request.question, request.invoice, profile), "provider": "openai" if answer else "local", "country": code}
+    answer = openai_answer(question, invoice, profile)
+    return JSONResponse({"answer": answer or fallback_answer(question, invoice, profile), "provider": "openai" if answer else "local", "country": code})
 
 
+routes = [
+    Route("/api/health", health, methods=["GET"]),
+    Route("/api/countries", countries, methods=["GET"]),
+    Route("/api/validate", validate, methods=["POST"]),
+    Route("/api/ask", ask, methods=["POST"]),
+]
 if PUBLIC_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(PUBLIC_DIR), html=True), name="frontend")
+    routes.append(Mount("/", app=StaticFiles(directory=str(PUBLIC_DIR), html=True), name="frontend"))
+app = Starlette(routes=routes, middleware=[Middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])])
 
 
 if __name__ == "__main__":
